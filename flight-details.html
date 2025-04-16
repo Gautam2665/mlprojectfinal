@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='flight-details.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/remixicon/fonts/remixicon.css"
+    />
+    <title>SkyScout - Book Your Flight</title>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>SKY SCOUT</h1>
+        <p class="subtitle">BOOK YOUR FLIGHT</p>
+      </header>
+
+      <div class="booking-tabs">
+        <div class="tab {% if sort_by == 'cheap' %}active{% endif %}" onclick="filterFlights('cheap')">Cheapest</div>
+        <div class="tab {% if sort_by == 'best' %}active{% endif %}" onclick="filterFlights('best')">Best</div>
+      </div>
+         
+
+      <div class="search-box">
+        <form action="{{ url_for('flight_details') }}" method="get" class="search-fields">
+          <div class="field">
+            <div class="field-label">From</div>
+            <input
+              type="text"
+              name="source"
+              class="field-value-input"
+              value="{{ source }}"
+              required
+            />
+          </div>
+          <div class="field">
+            <div class="field-label">To</div>
+            <input
+              type="text"
+              name="destination"
+              class="field-value-input"
+              value="{{ destination }}"
+              required
+            />
+          </div>
+          <div class="field">
+            <div class="field-label">Departure</div>
+            <input
+              type="date"
+              name="date"
+              class="field-value-input"
+              value="{{ travel_date }}"
+              required
+            />
+          </div>
+          <div class="field">
+            <div class="field-label">Class</div>
+            <select name="class" class="field-value-input" required>
+              <option value="Economy" {% if flight_class == 'Economy' %}selected{% endif %}>Economy</option>
+              <option value="Business" {% if flight_class == 'Business' %}selected{% endif %}>Business</option>
+            </select>
+          </div>
+
+          <input type="hidden" name="sort_by" value="{{ sort_by }}">
+      
+          <button type="submit" class="search-btn">Modify Search</button>
+        </form>
+      </div>   
+
+      <div class="flights-container">
+        {% if flights %} 
+        {% for flight in flights %}
+        <div class="flight-card">
+          <div class="flight-info">
+            <img
+              src="{{ flight.airline_logo }}"
+              alt="{{ flight.airline }}"
+              class="airline-logo"
+            />
+            <div class="airline">{{ flight.airline }}</div>
+          </div>
+
+          <div class="flight-timeline">
+            <div class="time-block">
+                <div class="time"> {{ flight.actual_dep_time }}</div>
+                <div class="airport-code">{{ flight.source_code }}</div>
+                <div class="airport">{{ flight.source_airport }}</div>
+            </div>
+        
+            <div class="flight-center">
+                <span class="duration">{{ flight.duration }}</span>
+                <div class="line-with-plane">
+                    <div class="line"></div> 
+                    <svg class="plane-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12">
+                        <path fill="#898294" d="M3.922 12h.499a.52.52 0 0 0 .444-.247L7.949 6.8l3.233-.019A.8.8 0 0 0 12 6a.8.8 0 0 0-.818-.781L7.949 5.2 4.866.246A.525.525 0 0 0 4.421 0h-.499a.523.523 0 0 0-.489.71L5.149 5.2H2.296l-.664-1.33a.523.523 0 0 0-.436-.288L0 3.509 1.097 6 0 8.491l1.196-.073a.523.523 0 0 0 .436-.288l.664-1.33h2.853l-1.716 4.49a.523.523 0 0 0 .489.71"></path>
+                    </svg>
+                </div>
+
+                <div class="stops">
+                    {% if flight.stops == 0 %}
+                    <span class="direct">Direct</span>
+                    {% elif flight.stops == 1 %}
+                    1 Stop
+                    {% else %}
+                    {{ flight.stops }} Stops
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="time-block">
+                <div class="time">{{ flight.actual_arr_time }}</div>
+                <div class="airport-code">{{ flight.destination_code }}</div>
+                <div class="airport-name">{{ flight.destination_airport }}</div>
+            </div>
+        </div>        
+        
+
+          <div class="price-block">
+            <div class="price">₹{{ "%.2f"|format(flight.predicted_price) }}</div>
+            {% if flight.holiday != "No Holiday" %}
+            <div class="price-type">Holiday Pricing</div>
+            {% else %}
+            <div class="price-type">Standard Pricing</div>
+            {% endif %}
+            <button class="details-btn">Check Details</button>
+          </div>          
+        </div>
+        {% endfor %} 
+        {% else %}
+        <p class="no-flights">
+          No flights available for this route on the selected date.
+        </p>
+        {% endif %}
+      </div>
+    </div>
+    <script>
+        function filterFlights(type) {
+            // Set the hidden input value
+            document.querySelector('input[name="sort_by"]').value = type;
+        
+            // Update active class on tabs
+            document.querySelectorAll('.booking-tabs .tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            if (type === 'cheap') {
+                document.querySelector('.booking-tabs .tab:nth-child(1)').classList.add('active');
+            } else if (type === 'best') {
+                document.querySelector('.booking-tabs .tab:nth-child(2)').classList.add('active');
+            }
+        
+            document.querySelector('.search-fields').submit();
+        }            
+    </script>
+  </body>
+</html>
